@@ -1,5 +1,5 @@
 # %% [markdown]
-# # 🧠 Local Chat - Robust Edition
+# # 🧠 Local Chat 
 
 # %%
 import streamlit as st
@@ -146,7 +146,7 @@ def ensure_llm_initialized():
             state['llm'] = Ollama(
                 model=conf.get('llm_model', 'llama3.2'),
                 base_url=conf.get('ollama_url', 'http://localhost:11434'),
-                temperature=0.1, # Temperatura baixa para ser mais factual
+                temperature=0.2, 
                 num_predict=2048
             )
         except Exception as e: logger.error(f"Erro LLM: {e}")
@@ -214,7 +214,7 @@ class VectorStoreManager:
     def create_vectorstore(self, documents):
         return FAISS.from_documents(documents, self.embeddings)
 
-# --- 6. Nós do Grafo (FLUXO CORRIGIDO) ---
+# --- 6. Nós do Grafo ---
 def retrieve(state: GraphState) -> GraphState:
     """Recupera documentos do Vector Store"""
     try:
@@ -236,7 +236,7 @@ def generate(state: GraphState) -> GraphState:
     documents = state.get("documents", [])
     question = state.get("question", "")
     
-    # Se não houver documentos, tentamos responder com o que temos ou avisamos
+    # Se não houver documentos, tenta responder com o que tem ou avisa
     if not documents:
         return {
             "question": question,
@@ -250,7 +250,7 @@ def generate(state: GraphState) -> GraphState:
         for doc in documents
     ])
 
-    # Prompt Otimizado para RAG
+    # Prompt para RAG
     prompt = ChatPromptTemplate.from_messages([
         ("system", """Você é um assistente prestativo e preciso.
         Sua tarefa é responder à pergunta do usuário baseando-se EXCLUSIVAMENTE no contexto fornecido abaixo.
@@ -284,12 +284,11 @@ def generate(state: GraphState) -> GraphState:
     except Exception as e:
         return {"question": question, "generation": f"Erro na geração: {e}"}
 
-# --- 7. Construção do Grafo Linear ---
+# --- 7. Construção do grafo linear ---
 def build_rag_graph() -> StateGraph:
     """
     Constrói um grafo RAG simples e robusto.
     Fluxo: Retrieve -> Generate
-    (Removemos o 'grade_documents' pois estava descartando docs úteis)
     """
     workflow = StateGraph(GraphState)
     
@@ -310,8 +309,8 @@ def main():
     
     # Sidebar
     with st.sidebar:
-        st.title("📝 DocuChat Local")
-        st.info("Sistema otimizado para interpretação de documentos.")
+        st.title("📝 Local Chat")
+        st.info("Sistema para interpretação de documentos.")
         
         # Configurações
         with st.expander("⚙️ Configurações", expanded=True):
@@ -332,7 +331,7 @@ def main():
             st.session_state.clear()
             st.rerun()
 
-    # Inicialização Tardia do LLM
+    # Inicialização tardia do LLM
     ensure_llm_initialized()
 
     # Área Principal
